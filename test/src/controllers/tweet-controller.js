@@ -18,7 +18,24 @@ const createTweet = async (req, res) => {
         });
     }
 };
+const getAllTweets = async (req, res) => {
+    try {
+        const tweets = await tweetService.getAll();
+        return res.status(200).json({
+            data : tweets,
+            status : 'success',
+            message: 'Tweets fetched successfully',
+            error : {},
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Error fetching tweets',
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     createTweet,
+    getAllTweets,
 };
