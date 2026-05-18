@@ -1,0 +1,38 @@
+const UserRepository = require('../repository/userRepository.js');
+class UserService {
+    userRepository = new UserRepository();
+    async signup(data){
+        try{
+            const user = await this.userRepository.create(data);
+            return user;
+        }catch(error){
+            throw error;
+        }
+    }
+    async getUserByEmail(email){
+        try{
+            const user = await this.userRepository.model.findOne({ email: email });
+            return user;
+        }catch(error){
+            throw error;
+        }
+    }
+    async signin(data){
+        try{
+            const user = await this.getUserByEmail(data.email);
+            if(!user){
+                throw new Error('User not found');
+            }
+            const isMatch = await user.comparePassword(data.password);
+            if(!isMatch){
+                throw new Error('Invalid password');
+            }
+            const token = await user.generateJWT();
+            return { user, token };
+        }catch(error){
+            throw error;
+        }
+    }
+
+}
+module.exports = UserService;
