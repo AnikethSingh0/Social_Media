@@ -6,6 +6,11 @@ const tweetSchema = new mongoose.Schema({
         required: true,
         maxlength: [250,'Tweet length should be less than 250 characters'],
     },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true  
+    },
     hashtags: [
         {
             type: mongoose.Schema.Types.ObjectId,
