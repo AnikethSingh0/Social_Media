@@ -18,6 +18,7 @@ const storage = new CloudinaryStorage({
     resource_type: 'auto'
   },
 });
+
  
 const parser = multer({ storage: storage });
 
