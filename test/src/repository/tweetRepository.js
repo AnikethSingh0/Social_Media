@@ -44,16 +44,30 @@ class TweetRepository {
             throw new Error('Error fetching tweet with comments: ' + error.message);
         }
     }
-    async incrementCommentCount(commentId) {
+    async incrementCommentCount(tweetId) {
         try {
-            const comment = await Tweet.findByIdAndUpdate(
-                commentId,
+            const tweet = await Tweet.findByIdAndUpdate(
+                tweetId,
                 { $inc: { commentCount: 1 } },
                 { new: true }
             );
-            return comment;
+            return tweet;
         }catch(error){
             console.log("Error in incrementing comment count:", error);
+            throw error;
+        }
+    }
+    async decrementCommentCount(tweetId) {
+        try {
+            const tweet = await Tweet.findByIdAndUpdate(
+                tweetId,
+                { $inc: { commentCount: -1 } },
+                { new: true }
+            );
+            return tweet;
+        }
+        catch(error){
+            console.log("Error in decrementing comment count:", error);
             throw error;
         }
     }

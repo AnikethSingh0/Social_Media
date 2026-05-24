@@ -11,15 +11,7 @@ class BaseRepository {
             throw error;
         }
     }
-    async findById(id) {
-        try {
-            const document = await this.model.findById(id);
-            return document;
-        }
-        catch (error) {
-            throw error;
-        }
-    }
+   
     async findAll(offset, limit) {
         try {
             const documents = await this.model.find().skip(offset).limit(limit);

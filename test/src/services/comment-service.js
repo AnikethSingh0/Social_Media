@@ -35,6 +35,7 @@ class CommentService{
 
             const reply = await this.commentRepository.create(replyData);
             await this.tweetRepository.incrementCommentCount(data.parentTweet);
+            await this.commentRepository.incrementCommentCount(data.parentCommentId);
 
             return reply;
         }catch(error){
