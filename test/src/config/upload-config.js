@@ -14,12 +14,11 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'media',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'mp4', 'webp'], 
+    allowedFormats: ['jpg', 'png', 'jpeg', 'gif', 'mp4', 'webp'], 
     resource_type: 'auto'
   },
 });
 
- 
 const parser = multer({ storage: storage });
 
 module.exports = parser;

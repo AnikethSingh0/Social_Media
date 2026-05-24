@@ -12,7 +12,7 @@ class TweetService {
              - using regex to validate the hashtags
         */
 
-        const content = data.content;
+        const content = data.content || "";
         let tags = content.match(/#\w+/g) || [];
 
         /* 

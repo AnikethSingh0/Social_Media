@@ -44,5 +44,18 @@ class TweetRepository {
             throw new Error('Error fetching tweet with comments: ' + error.message);
         }
     }
+    async incrementCommentCount(commentId) {
+        try {
+            const comment = await Tweet.findByIdAndUpdate(
+                commentId,
+                { $inc: { commentCount: 1 } },
+                { new: true }
+            );
+            return comment;
+        }catch(error){
+            console.log("Error in incrementing comment count:", error);
+            throw error;
+        }
+    }
 }
 module.exports = TweetRepository;

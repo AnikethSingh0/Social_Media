@@ -6,9 +6,8 @@ const createTweet = async (req, res) => {
         const data = req.body;
         data.user = req.user.id;
 
-        data.mediaUrl = [];
-        if(req.files && req.files.length > 0){
-            data.mediaUrl = req.files.map(file => file.path);
+        if(req.file){
+            data.mediaUrl = req.file.path;
         }
 
         const tweet = await tweetService.create(data);

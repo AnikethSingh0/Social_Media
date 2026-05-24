@@ -5,7 +5,7 @@ module.exports = {
     jwt_secret : process.env.JWT_SECRET,
     client_id : process.env.CLIENT_ID,
     client_secret : process.env.CLIENT_SECRET,
-    cloud_name : process.env.CLOUD_NAME,
-    cloud_api_key : process.env.CLOUD_API_KEY,
-    cloud_api_secret : process.env.CLOUD_API_SECRET,
+    cloud_name : process.env.CLOUDINARY_CLOUD_NAME,
+    cloud_api_key : process.env.CLOUDINARY_API_KEY,
+    cloud_api_secret : process.env.CLOUDINARY_API_SECRET,
 }

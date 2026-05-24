@@ -53,7 +53,7 @@ userSchema.methods.generateJWT = async function generateJWT() {
     const token = jwt.sign(
         { id: this._id, username: this.username },
         jwt_secret,
-        { expiresIn: '1h' }
+        { expiresIn: '7d' }
     );
     return token;
 };
