@@ -1,4 +1,4 @@
-const Comment = require('../models/comment');
+const Comment = require('../models/comment.js');
 const baseRepository = require('./baseRepository.js');
 
 class CommentRepository extends baseRepository {

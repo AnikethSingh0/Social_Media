@@ -1,9 +1,9 @@
-const CommentReposirory = require('../repository/commentRepository');
+const CommentRepository = require('../repository/commentRepository');
 const TweetRepository = require('../repository/tweetRepository');
 
 class CommentService{
     constructor(){
-        this.commentRepository = new CommentReposirory();
+        this.commentRepository = new CommentRepository();
         this.tweetRepository = new TweetRepository();
     }
     async createTopLevelComment(data){

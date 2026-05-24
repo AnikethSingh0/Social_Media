@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Info } from 'lucide-react';
 
 const ToastContext = createContext(null);
 
@@ -28,11 +28,9 @@ export const ToastProvider = ({ children }) => {
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
               className={`toast ${toast.type}`}
             >
-              {toast.type === 'success' ? (
-                <CheckCircle2 size={20} className="toast-icon success-icon" />
-              ) : (
-                <XCircle size={20} className="toast-icon error-icon" />
-              )}
+              {toast.type === 'success' && <CheckCircle2 size={20} className="toast-icon success-icon" />}
+              {toast.type === 'error' && <XCircle size={20} className="toast-icon error-icon" />}
+              {toast.type === 'info' && <Info size={20} className="toast-icon info-icon" />}
               <span>{toast.message}</span>
             </motion.div>
           ))}
@@ -42,4 +40,5 @@ export const ToastProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useToast = () => useContext(ToastContext);
