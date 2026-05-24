@@ -8,4 +8,4 @@ const { createTopLevelComment, nestedReply, getCommentsForTweet, getRepliesForCo
 router.post('/comment/:parentTweet', passport.authenticate('jwt', { session: false }), createTopLevelComment);
 router.post('/reply/:parentTweet/:parentCommentId', passport.authenticate('jwt', { session: false }), nestedReply);
 router.get('/comments/:parentTweet', getCommentsForTweet);
-router.get('/replies/:parentCommentId', getRepliesForComment);
+router.get('/replies/:parentCommentId', getRepliesForComment);  
