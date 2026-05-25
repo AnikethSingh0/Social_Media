@@ -81,3 +81,27 @@ export function getUserDisplay(user, fallback = {}) {
 
   return { name, username };
 }
+
+export function getLikedItems() {
+  try {
+    return JSON.parse(localStorage.getItem('namaste_likes') || '{}');
+  } catch {
+    return {};
+  }
+}
+
+export function isLikedLocally(id) {
+  if (!id) return false;
+  return !!getLikedItems()[id];
+}
+
+export function toggleLikeLocally(id, isLiked) {
+  if (!id) return;
+  const likes = getLikedItems();
+  if (isLiked) {
+    likes[id] = true;
+  } else {
+    delete likes[id];
+  }
+  localStorage.setItem('namaste_likes', JSON.stringify(likes));
+}

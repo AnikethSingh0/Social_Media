@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CornerDownRight, MessageCircle } from 'lucide-react';
+import { X, CornerDownRight, MessageCircle, Heart } from 'lucide-react';
 import Avatar from './ui/Avatar';
 import Button from './ui/Button';
 import EmptyState from './ui/EmptyState';
@@ -9,8 +9,10 @@ import {
   formatRelativeTime,
   getUserDisplay,
   renderContentWithHashtags,
+  isLikedLocally,
+  toggleLikeLocally,
 } from '../lib/utils';
-import { fetchComments, createComment, fetchReplies, createReply } from '../lib/api';
+import { fetchComments, createComment, fetchReplies, createReply, toggleLike } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 
 const CommentNode = ({ comment, tweetId, onReplySuccess, userProfile }) => {
@@ -21,8 +23,34 @@ const CommentNode = ({ comment, tweetId, onReplySuccess, userProfile }) => {
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [repliesFetched, setRepliesFetched] = useState(false);
   const [localReplyCount, setLocalReplyCount] = useState(comment.commentCount || 0);
+  const [isLiked, setIsLiked] = useState(() => isLikedLocally(comment._id));
+  const [likeCount, setLikeCount] = useState(comment.likeCount || 0);
   const { addToast } = useToast();
   const author = getUserDisplay(comment.user);
+
+  const handleLike = async (event) => {
+    event.stopPropagation();
+    const prevLiked = isLiked;
+    const prevCount = likeCount;
+    const nextLiked = !prevLiked;
+
+    setIsLiked(nextLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+    toggleLikeLocally(comment._id, nextLiked);
+
+    try {
+      const { res, data } = await toggleLike('Comment', comment._id);
+      if (!res.ok || (data && data.success === false)) {
+        setIsLiked(prevLiked);
+        setLikeCount(prevCount);
+        toggleLikeLocally(comment._id, prevLiked);
+      }
+    } catch {
+      setIsLiked(prevLiked);
+      setLikeCount(prevCount);
+      toggleLikeLocally(comment._id, prevLiked);
+    }
+  };
 
   const loadReplies = async () => {
     if (repliesFetched || localReplyCount === 0) {
@@ -96,6 +124,21 @@ const CommentNode = ({ comment, tweetId, onReplySuccess, userProfile }) => {
             <button className="comment-action-btn" type="button" onClick={loadReplies}>
               <MessageCircle size={16} />
               <span>{localReplyCount > 0 ? `${localReplyCount} replies` : 'Reply'}</span>
+            </button>
+            <button 
+              className={`comment-action-btn ${isLiked ? 'liked' : ''}`} 
+              type="button" 
+              onClick={handleLike}
+              style={isLiked ? { color: 'var(--rose-color)' } : {}}
+            >
+              <motion.div
+                initial={false}
+                animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+              >
+                <Heart size={16} className={isLiked ? 'fill-current' : ''} />
+              </motion.div>
+              {likeCount > 0 && <span>{likeCount}</span>}
             </button>
           </div>
 

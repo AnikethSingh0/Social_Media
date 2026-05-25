@@ -8,20 +8,41 @@ import {
   getUserDisplay,
   normalizeMediaUrls,
   renderContentWithHashtags,
+  isLikedLocally,
+  toggleLikeLocally,
 } from '../lib/utils';
+import { toggleLike } from '../lib/api';
 
 const TweetCard = ({ tweet, onOpenComments }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(() => isLikedLocally(tweet._id));
   const [likeCount, setLikeCount] = useState(tweet.likeCount || 0);
 
   const { name, username } = getUserDisplay(tweet.user, { username: tweet.localUsername });
   const mediaUrls = normalizeMediaUrls(tweet.mediaUrl);
   const isVerified = ['admin', 'namaste', 'official'].includes(username.toLowerCase());
 
-  const handleLike = (event) => {
+  const handleLike = async (event) => {
     event.stopPropagation();
-    setIsLiked((current) => !current);
-    setLikeCount((current) => Math.max(0, isLiked ? current - 1 : current + 1));
+    const prevLiked = isLiked;
+    const prevCount = likeCount;
+    const nextLiked = !prevLiked;
+
+    setIsLiked(nextLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+    toggleLikeLocally(tweet._id, nextLiked);
+
+    try {
+      const { res, data } = await toggleLike('Tweet', tweet._id);
+      if (!res.ok || (data && data.success === false)) {
+        setIsLiked(prevLiked);
+        setLikeCount(prevCount);
+        toggleLikeLocally(tweet._id, prevLiked);
+      }
+    } catch {
+      setIsLiked(prevLiked);
+      setLikeCount(prevCount);
+      toggleLikeLocally(tweet._id, prevLiked);
+    }
   };
 
   return (
@@ -73,7 +94,7 @@ const TweetCard = ({ tweet, onOpenComments }) => {
             onClick={onOpenComments}
             aria-label="Open replies"
           >
-            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(125, 92, 255, 0.14)' } }}>
+            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}>
               <MessageCircle size={18} />
             </motion.div>
             <span className="action-count">{tweet.commentCount > 0 ? tweet.commentCount : ''}</span>
@@ -86,7 +107,7 @@ const TweetCard = ({ tweet, onOpenComments }) => {
             whileTap={{ scale: 0.9 }}
             aria-label="Repost"
           >
-            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(34, 197, 94, 0.14)' } }}>
+            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(0, 186, 124, 0.1)' } }}>
               <Repeat2 size={18} />
             </motion.div>
           </motion.button>
@@ -99,8 +120,14 @@ const TweetCard = ({ tweet, onOpenComments }) => {
             onClick={handleLike}
             aria-label={isLiked ? 'Unlike post' : 'Like post'}
           >
-            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(244, 63, 94, 0.14)' } }}>
-              <Heart size={18} className={isLiked ? 'fill-current' : ''} />
+            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(249, 24, 128, 0.1)' } }}>
+              <motion.div
+                initial={false}
+                animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+              >
+                <Heart size={18} className={isLiked ? 'fill-current' : ''} />
+              </motion.div>
             </motion.div>
             <AnimatePresence mode="popLayout">
               <motion.span
@@ -122,7 +149,7 @@ const TweetCard = ({ tweet, onOpenComments }) => {
             whileTap={{ scale: 0.9 }}
             aria-label="View post analytics"
           >
-            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(14, 165, 233, 0.14)' } }}>
+            <motion.div className="action-icon-wrapper" variants={{ hover: { backgroundColor: 'rgba(29, 155, 240, 0.1)' } }}>
               <BarChart2 size={18} />
             </motion.div>
           </motion.button>

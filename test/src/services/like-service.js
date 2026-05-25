@@ -1,6 +1,6 @@
-const LikeRepository = require('../repositories/like-repository');
-const TweetRepository = require('../repositories/tweetRepository');
-const CommentRepository = require('../repositories/commentRepository');
+const LikeRepository = require('../repository/likeRepository');
+const TweetRepository = require('../repository/tweetRepository');
+const CommentRepository = require('../repository/commentRepository');
 
 class LikeService {
     constructor(){
@@ -24,9 +24,9 @@ class LikeService {
                 }
             }else{
                 await this.likeRepository.create({
-                    user: userId,
-                    modelId: modelId,
-                    onModel: modelType
+                    likedBy: userId,
+                    likeable: modelId,
+                    onmodel: modelType
                 });
                 if(modelType === 'Tweet'){
                     await this.tweetRepository.incrementLikeCount(modelId);

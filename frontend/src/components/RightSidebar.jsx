@@ -28,15 +28,7 @@ const RightSidebar = () => {
 
 
 
-        <section className="insight-card">
-          <div className="insight-icon">
-            <PiFlowerLotusDuotone size={20} />
-          </div>
-          <div>
-            <p className="insight-kicker">Namaste mode</p>
-            <h2>Black, quiet, readable, and built around conversation.</h2>
-          </div>
-        </section>
+
 
         <section className="trending-box">
           <h2>What's happening</h2>

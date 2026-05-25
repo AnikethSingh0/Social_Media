@@ -20,7 +20,7 @@ class CommentRepository extends baseRepository {
     }
     async decrementCommentCount(commentId) {
         try {
-            const comment = await this.model.findByIdAndUpdate(
+            const comment = await Comment.findByIdAndUpdate(
                 commentId,
                 { $inc: { commentCount: -1 } },
                 { new: true }
@@ -31,9 +31,9 @@ class CommentRepository extends baseRepository {
             throw error;
         }
     }
-    incrementLikeCount(commentId) {
+    async incrementLikeCount(commentId) {
         try {
-            const comment = this.model.findByIdAndUpdate(
+            const comment = await Comment.findByIdAndUpdate(
                 commentId,
                 { $inc: { likeCount: 1 } },
                 { new: true }
@@ -44,9 +44,9 @@ class CommentRepository extends baseRepository {
             throw error;
         }
     }
-    decrementLikeCount(commentId) {
+    async decrementLikeCount(commentId) {
         try {
-            const comment = this.model.findByIdAndUpdate(
+            const comment = await Comment.findByIdAndUpdate(
                 commentId,
                 { $inc: { likeCount: -1 } },
                 { new: true }

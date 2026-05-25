@@ -2,18 +2,18 @@ const Like = require('../models/like');
 const BaseRepository = require('./baseRepository');
 const TweetRepository = require('./tweetRepository');
 const CommentRepository = require('./commentRepository');
-class LikeRepository extends BaseRespository {
+class LikeRepository extends BaseRepository {
     constructor() {
         super(Like);
         this.tweetRepository = new TweetRepository();
         this.commentRepository = new CommentRepository();
     }
-    async findByUserAndLikeable(data) {
+    async findByUserAndLikeable({ user, modelId, onModel }) {
         try {
             return await this.model.findOne({
-                likedBy: data.user,
-                likeable: data.modelId,
-                onModel: data.modelType
+                likedBy: user,
+                likeable: modelId,
+                onmodel: onModel
             });
         } catch (error) {
             console.error("Error finding like:", error);

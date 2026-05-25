@@ -1,6 +1,5 @@
-import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal } from 'lucide-react';
+import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PiHandsPrayingDuotone } from 'react-icons/pi';
 import Avatar from './ui/Avatar';
 import Button from './ui/Button';
 
@@ -26,7 +25,7 @@ const Sidebar = ({ userProfile, onLogout, onPostClick }) => {
           aria-label="Namaste home"
         >
           <div className="brand-logo">
-            <PiHandsPrayingDuotone size={24} />
+            <Sparkles size={24} />
           </div>
           <span className="brand-wordmark">Namaste</span>
         </motion.div>

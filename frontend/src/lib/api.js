@@ -91,3 +91,9 @@ export async function createReply(tweetId, parentCommentId, content) {
     body: JSON.stringify({ content }),
   });
 }
+
+export async function toggleLike(modelType, modelId) {
+  return apiFetch(`/likes/toggle/${modelType}/${modelId}`, {
+    method: 'POST'
+  });
+}

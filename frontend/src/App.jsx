@@ -7,8 +7,8 @@ import AuthModal from './components/AuthModal';
 import CommentThread from './components/CommentThread';
 import MobileNav from './components/MobileNav';
 import { ToastProvider, useToast } from './contexts/ToastContext';
-import { AnimatePresence } from 'framer-motion';
-import { PiHandsPrayingDuotone } from 'react-icons/pi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 import { getToken, setToken, removeToken } from './lib/api';
 import { parseJwt } from './lib/utils';
 import Button from './components/ui/Button';
@@ -76,14 +76,28 @@ const AppContent = () => {
     return (
       <>
         <div className="masterpiece-bg">
+          <motion.div 
+            className="glow-orb orb-1"
+            animate={{ x: [0, 50, 0], y: [0, -30, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="glow-orb orb-2"
+            animate={{ x: [0, -50, 0], y: [0, 30, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
           <div className="landing-grid"></div>
         </div>
         <div className="landing-container animate-fade">
           <div className="landing-hero">
             <div className="landing-showcase">
-              <div className="showcase-card showcase-card-main">
+              <motion.div 
+                className="showcase-card showcase-card-main"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <div className="showcase-avatar">
-                  <PiHandsPrayingDuotone size={28} />
+                  <Sparkles size={28} />
                 </div>
                 <div className="showcase-copy">
                   <strong>Namaste</strong>
@@ -91,14 +105,18 @@ const AppContent = () => {
                   <span></span>
                   <span></span>
                 </div>
-              </div>
-              <div className="showcase-card showcase-card-floating">
+              </motion.div>
+              <motion.div 
+                className="showcase-card showcase-card-floating"
+                animate={{ y: [0, 10, 0], x: [0, 5, 0] }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <span className="showcase-pulse"></span>
                 Live conversations, refined.
-              </div>
+              </motion.div>
             </div>
             <div className="brand-logo-large" aria-hidden="true">
-              <PiHandsPrayingDuotone />
+              <Sparkles />
             </div>
           </div>
           <div className="landing-content">

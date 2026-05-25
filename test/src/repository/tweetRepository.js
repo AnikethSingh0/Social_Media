@@ -71,9 +71,9 @@ class TweetRepository {
             throw error;
         }
     }
-    incrementLikeCount(tweetId) {
+    async incrementLikeCount(tweetId) {
         try {
-            const tweet = this.model.findByIdAndUpdate(
+            const tweet = await Tweet.findByIdAndUpdate(
                 tweetId,
                 { $inc: { likeCount: 1 } },
                 { new: true }
@@ -84,9 +84,9 @@ class TweetRepository {
             throw error;
         }
     }
-    decrementLikeCount(tweetId) {
+    async decrementLikeCount(tweetId) {
         try {
-            const tweet = this.model.findByIdAndUpdate(
+            const tweet = await Tweet.findByIdAndUpdate(
                 tweetId,
                 { $inc: { likeCount: -1 } },
                 { new: true }
