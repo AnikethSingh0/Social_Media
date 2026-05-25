@@ -71,5 +71,31 @@ class TweetRepository {
             throw error;
         }
     }
+    incrementLikeCount(tweetId) {
+        try {
+            const tweet = this.model.findByIdAndUpdate(
+                tweetId,
+                { $inc: { likeCount: 1 } },
+                { new: true }
+            );
+            return tweet;
+        } catch (error) {
+            console.log("Error in TweetRepository while incrementing like count:", error);
+            throw error;
+        }
+    }
+    decrementLikeCount(tweetId) {
+        try {
+            const tweet = this.model.findByIdAndUpdate(
+                tweetId,
+                { $inc: { likeCount: -1 } },
+                { new: true }
+            );
+            return tweet;
+        } catch (error) {
+            console.log("Error in TweetRepository while decrementing like count:", error);
+            throw error;
+        }
+    }
 }
 module.exports = TweetRepository;

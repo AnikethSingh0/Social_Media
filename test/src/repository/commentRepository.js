@@ -31,6 +31,33 @@ class CommentRepository extends baseRepository {
             throw error;
         }
     }
+    incrementLikeCount(commentId) {
+        try {
+            const comment = this.model.findByIdAndUpdate(
+                commentId,
+                { $inc: { likeCount: 1 } },
+                { new: true }
+            );
+            return comment;
+        } catch (error) {
+            console.log("Error in CommentRepository while incrementing like count:", error);
+            throw error;
+        }
+    }
+    decrementLikeCount(commentId) {
+        try {
+            const comment = this.model.findByIdAndUpdate(
+                commentId,
+                { $inc: { likeCount: -1 } },
+                { new: true }
+            );
+            return comment;
+        } catch (error) {
+            console.log("Error in CommentRepository while decrementing like count:", error);
+            throw error;
+        }
+    }
+
 }
 
 module.exports = CommentRepository;

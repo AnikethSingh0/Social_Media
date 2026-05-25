@@ -10,7 +10,12 @@ import { MessageSquare } from 'lucide-react';
 
 const LIMIT = 10;
 
-const Feed = ({ token, userProfile, onOpenComments }) => {
+const Feed = ({
+  token,
+  userProfile,
+  onOpenComments,
+  commentAdjustments = {},
+}) => {
   const [tweets, setTweets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -52,9 +57,8 @@ const Feed = ({ token, userProfile, onOpenComments }) => {
         const { res, data } = await fetchTweets(offset, LIMIT);
         
         if (isMounted && res.ok && data.status === 'success' && data.data) {
-          let fetchedTweets = data.data;
+          let fetchedTweets = Array.isArray(data.data) ? data.data : [];
 
-          // Auto-fix: If backend ignores pagination and returns all tweets at once
           if (fetchedTweets.length > LIMIT) {
             fetchedTweets = fetchedTweets.slice(offset, offset + LIMIT);
           }
@@ -97,7 +101,10 @@ const Feed = ({ token, userProfile, onOpenComments }) => {
   return (
     <main className="feed">
       <div className="feed-header">
-        <h2 className="feed-title">Home</h2>
+        <div>
+          <p className="feed-kicker">Namaste</p>
+          <h2 className="feed-title">Home</h2>
+        </div>
       </div>
 
       {token && (
@@ -114,12 +121,16 @@ const Feed = ({ token, userProfile, onOpenComments }) => {
           <>
             <AnimatePresence>
               {tweets.map((tweet, index) => {
+                const displayTweet = commentAdjustments[tweet._id]
+                  ? { ...tweet, commentCount: Math.max(0, (tweet.commentCount || 0) + commentAdjustments[tweet._id]) }
+                  : tweet;
+
                 if (tweets.length === index + 1) {
                   return (
                     <div ref={lastTweetElementRef} key={tweet._id || `tweet-${index}`} style={{ width: '100%' }}>
                       <TweetCard 
-                        tweet={tweet} 
-                        onOpenComments={() => onOpenComments && onOpenComments(tweet)} 
+                        tweet={displayTweet} 
+                        onOpenComments={() => onOpenComments && onOpenComments(displayTweet)} 
                       />
                     </div>
                   );
@@ -127,8 +138,8 @@ const Feed = ({ token, userProfile, onOpenComments }) => {
                   return (
                     <TweetCard 
                       key={tweet._id || `tweet-${index}`} 
-                      tweet={tweet} 
-                      onOpenComments={() => onOpenComments && onOpenComments(tweet)} 
+                      tweet={displayTweet} 
+                      onOpenComments={() => onOpenComments && onOpenComments(displayTweet)} 
                     />
                   );
                 }
@@ -154,7 +165,7 @@ const Feed = ({ token, userProfile, onOpenComments }) => {
         {!loading && tweets.length === 0 && (
           <EmptyState 
             icon={MessageSquare}
-            title="Welcome to Pulse"
+            title="Welcome to Namaste"
             description="Your timeline is empty. Follow people or post something to get started!"
           />
         )}

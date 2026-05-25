@@ -8,6 +8,7 @@ import CommentThread from './components/CommentThread';
 import MobileNav from './components/MobileNav';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { AnimatePresence } from 'framer-motion';
+import { PiHandsPrayingDuotone } from 'react-icons/pi';
 import { getToken, setToken, removeToken } from './lib/api';
 import { parseJwt } from './lib/utils';
 import Button from './components/ui/Button';
@@ -17,11 +18,9 @@ const AppContent = () => {
   const [token, setTokenState] = useState(getToken());
   const userProfile = token ? parseJwt(token) : null;
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalState, setAuthModalState] = useState(true); // true = login, false = signup
-  
-  // Comment drawer state
+  const [authModalState, setAuthModalState] = useState(true);
   const [activeCommentTweet, setActiveCommentTweet] = useState(null);
-  
+  const [commentAdjustments, setCommentAdjustments] = useState({});
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -55,37 +54,58 @@ const AppContent = () => {
     setActiveCommentTweet(null);
   };
 
-  // We need a way to optimistically update the feed when a comment is added
-  // A simple way is to pass a callback that just forces a re-render or updates that specific tweet
-  // For simplicity, we just rely on the comment drawer adding the comment. The feed tweet 
-  // might not update its counter until refresh, but that's a common tradeoff without global state.
-  // We can increment locally:
-  const handleCommentAdded = () => {
-    if (activeCommentTweet) {
-      setActiveCommentTweet(prev => prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null);
-    }
+  const handleCommentAdded = (tweetId = activeCommentTweet?._id) => {
+    if (!tweetId) return;
+
+    setActiveCommentTweet((prev) => (
+      prev && prev._id === tweetId
+        ? { ...prev, commentCount: (prev.commentCount || 0) + 1 }
+        : prev
+    ));
+    setCommentAdjustments((current) => ({
+      ...current,
+      [tweetId]: (current[tweetId] || 0) + 1,
+    }));
+  };
+
+  const scrollToComposer = () => {
+    document.querySelector('.post-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (!token) {
     return (
       <>
         <div className="masterpiece-bg">
-          <div className="orb orb-1"></div>
-          <div className="orb orb-2"></div>
-          <div className="orb orb-3"></div>
+          <div className="landing-grid"></div>
         </div>
         <div className="landing-container animate-fade">
           <div className="landing-hero">
-             <div className="brand-logo-large">
-              <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-              </svg>
-             </div>
+            <div className="landing-showcase">
+              <div className="showcase-card showcase-card-main">
+                <div className="showcase-avatar">
+                  <PiHandsPrayingDuotone size={28} />
+                </div>
+                <div className="showcase-copy">
+                  <strong>Namaste</strong>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+              <div className="showcase-card showcase-card-floating">
+                <span className="showcase-pulse"></span>
+                Live conversations, refined.
+              </div>
+            </div>
+            <div className="brand-logo-large" aria-hidden="true">
+              <PiHandsPrayingDuotone />
+            </div>
           </div>
           <div className="landing-content">
             <div className="glass-panel">
-              <h1 className="animate-slide-up">Happening now</h1>
-              <h2 className="animate-slide-up" style={{animationDelay: '0.1s'}}>Join Pulse today.</h2>
+              <div className="landing-kicker">Namaste Social</div>
+              <h1 className="animate-slide-up">A calmer social room</h1>
+              <h2 className="animate-slide-up" style={{animationDelay: '0.1s'}}>Post, reply, and shape your feed.</h2>
               
               <div className="auth-buttons-container animate-slide-up" style={{animationDelay: '0.2s'}}>
                 <Button 
@@ -97,11 +117,11 @@ const AppContent = () => {
                   Create account
                 </Button>
                 
-                <div className="text-[11px] text-[var(--dim-text)] mt-2 mb-8">
+                <div className="auth-disclaimer">
                   By signing up, you agree to the Terms of Service and Privacy Policy, including Cookie Use.
                 </div>
 
-                <h3 className="text-[17px] font-bold mb-4">Already have an account?</h3>
+                <h3 className="landing-auth-heading">Already have an account?</h3>
                 <Button 
                   variant="outline" 
                   fullWidth 
@@ -135,12 +155,13 @@ const AppContent = () => {
 
   return (
     <div className="app-container animate-fade">
-      <Sidebar userProfile={userProfile} onLogout={handleLogout} />
+      <Sidebar userProfile={userProfile} onLogout={handleLogout} onPostClick={scrollToComposer} />
       
       <Feed 
         token={token} 
         userProfile={userProfile} 
         onOpenComments={handleOpenComments} 
+        commentAdjustments={commentAdjustments}
       />
       
       <RightSidebar />
@@ -150,9 +171,10 @@ const AppContent = () => {
         isOpen={!!activeCommentTweet}
         onClose={handleCloseComments}
         onCommentAdded={handleCommentAdded}
+        userProfile={userProfile}
       />
       
-      <MobileNav onPostClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+      <MobileNav onPostClick={scrollToComposer} />
     </div>
   );
 };

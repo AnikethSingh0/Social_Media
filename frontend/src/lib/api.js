@@ -1,27 +1,35 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
-// ── Token helpers ──────────────────────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('token');
-export const setToken = (t) => localStorage.setItem('token', t);
+export const setToken = (token) => localStorage.setItem('token', token);
 export const removeToken = () => localStorage.removeItem('token');
 
 const authHeaders = () => {
-  const t = getToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// ── Generic fetcher ────────────────────────────────────────────────────────────
+async function readJson(res) {
+  const text = await res.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
+
 async function apiFetch(path, opts = {}) {
   const { headers = {}, ...rest } = opts;
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { ...authHeaders(), ...headers },
     ...rest,
   });
-  const data = await res.json();
+  const data = await readJson(res);
   return { res, data };
 }
 
-// ── Auth ───────────────────────────────────────────────────────────────────────
 export async function signup({ email, password, username, fullName }) {
   return apiFetch('/auth/signup', {
     method: 'POST',
@@ -42,26 +50,24 @@ export function getGoogleAuthUrl() {
   return `${API_BASE}/auth/google`;
 }
 
-// ── Tweets ─────────────────────────────────────────────────────────────────────
 export async function fetchTweets(offset = 0, limit = 10) {
   return apiFetch(`/tweets?offset=${offset}&limit=${limit}`);
 }
 
 export async function createTweet(content, mediaFile) {
-  const fd = new FormData();
-  fd.append('content', content);
-  if (mediaFile) fd.append('media', mediaFile);
+  const formData = new FormData();
+  formData.append('content', content);
+  if (mediaFile) formData.append('media', mediaFile);
 
   const res = await fetch(`${API_BASE}/tweet`, {
     method: 'POST',
     headers: { ...authHeaders() },
-    body: fd,
+    body: formData,
   });
-  const data = await res.json();
+  const data = await readJson(res);
   return { res, data };
 }
 
-// ── Comments ───────────────────────────────────────────────────────────────────
 export async function fetchComments(tweetId) {
   return apiFetch(`/comments/${tweetId}`);
 }

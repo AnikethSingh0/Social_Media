@@ -1,37 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CornerDownRight, MessageCircle } from 'lucide-react';
 import Avatar from './ui/Avatar';
 import Button from './ui/Button';
 import EmptyState from './ui/EmptyState';
 import LoadingSkeleton from './ui/LoadingSkeleton';
-import { formatRelativeTime, renderContentWithHashtags } from '../lib/utils';
+import {
+  formatRelativeTime,
+  getUserDisplay,
+  renderContentWithHashtags,
+} from '../lib/utils';
 import { fetchComments, createComment, fetchReplies, createReply } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 
-// --- Recursive Comment Node Component ---
-const CommentNode = ({ comment, tweetId, onReplySuccess }) => {
+const CommentNode = ({ comment, tweetId, onReplySuccess, userProfile }) => {
   const [replies, setReplies] = useState([]);
-  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [isReplyAreaOpen, setIsReplyAreaOpen] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [repliesFetched, setRepliesFetched] = useState(false);
+  const [localReplyCount, setLocalReplyCount] = useState(comment.commentCount || 0);
   const { addToast } = useToast();
+  const author = getUserDisplay(comment.user);
 
   const loadReplies = async () => {
-    if (repliesFetched || comment.commentCount === 0) {
-      setShowReplyInput(!showReplyInput);
+    if (repliesFetched || localReplyCount === 0) {
+      setIsReplyAreaOpen((current) => !current);
       return;
     }
-    
+
     setLoadingReplies(true);
     try {
       const { res, data } = await fetchReplies(comment._id);
       if (res.ok && data.success) {
-        setReplies(data.data);
+        setReplies(Array.isArray(data.data) ? data.data : []);
         setRepliesFetched(true);
-        setShowReplyInput(true);
+        setIsReplyAreaOpen(true);
+      } else {
+        addToast(data.message || 'Failed to load replies', 'error');
       }
     } catch {
       addToast('Failed to load replies', 'error');
@@ -42,25 +49,27 @@ const CommentNode = ({ comment, tweetId, onReplySuccess }) => {
 
   const handleReplySubmit = async () => {
     if (!replyContent.trim()) return;
+
     setIsSubmitting(true);
     try {
-      const { res, data } = await createReply(tweetId, comment._id, replyContent);
+      const { res, data } = await createReply(tweetId, comment._id, replyContent.trim());
       if (res.ok && data.success) {
-        // Optimistically add the reply
         const newReply = {
           ...data.data,
-          user: { name: 'You', username: 'user' }, // Fallback, could pass userProfile
+          user: userProfile || { name: 'You', username: 'you' },
         };
-        setReplies(prev => [newReply, ...prev]);
+        setReplies((prev) => [newReply, ...prev]);
+        setRepliesFetched(true);
+        setLocalReplyCount((count) => count + 1);
         setReplyContent('');
-        setShowReplyInput(false);
-        onReplySuccess(); // Bubbles up to update original tweet comment count
+        setIsReplyAreaOpen(true);
+        onReplySuccess(tweetId);
         addToast('Reply added', 'success');
       } else {
-        addToast(data.message || 'Failed to reply', 'error');
+        addToast(data.message || 'Failed to add reply', 'error');
       }
     } catch {
-      addToast('Network error', 'error');
+      addToast('Network error while replying', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,78 +77,79 @@ const CommentNode = ({ comment, tweetId, onReplySuccess }) => {
 
   return (
     <div className="comment-node">
+      <div className="comment-thread-line" />
       <div className="comment-body">
         <div className="comment-avatar">
-          <Avatar name={comment.user?.name || comment.user?.fullName} size="md" />
+          <Avatar name={author.name} size="md" />
         </div>
         <div className="comment-content-area">
           <div className="comment-header">
-            <span className="comment-name">{comment.user?.name || comment.user?.fullName || 'User'}</span>
-            <span className="comment-username">@{comment.user?.username || 'user'}</span>
-            <span className="comment-dot">·</span>
+            <span className="comment-name">{author.name}</span>
+            <span className="comment-username">@{author.username}</span>
+            <span className="comment-dot">&middot;</span>
             <span className="comment-time">{formatRelativeTime(comment.createdAt)}</span>
           </div>
           <div className="comment-text">
             {renderContentWithHashtags(comment.content)}
           </div>
           <div className="comment-actions">
-            <button className="comment-action-btn" onClick={loadReplies}>
+            <button className="comment-action-btn" type="button" onClick={loadReplies}>
               <MessageCircle size={16} />
-              <span>{comment.commentCount > 0 ? comment.commentCount : 'Reply'}</span>
+              <span>{localReplyCount > 0 ? `${localReplyCount} replies` : 'Reply'}</span>
             </button>
           </div>
+
+          {loadingReplies && <div className="reply-loading">Loading replies...</div>}
+
+          <AnimatePresence>
+            {isReplyAreaOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="reply-composer-area"
+              >
+                <div className="reply-composer">
+                  <CornerDownRight size={16} className="reply-icon" />
+                  <textarea
+                    placeholder="Write a reply"
+                    value={replyContent}
+                    onChange={(event) => {
+                      setReplyContent(event.target.value);
+                      event.target.style.height = 'auto';
+                      event.target.style.height = `${event.target.scrollHeight}px`;
+                    }}
+                    disabled={isSubmitting}
+                    rows={1}
+                  />
+                  <Button size="sm" onClick={handleReplySubmit} disabled={!replyContent.trim() || isSubmitting} isLoading={isSubmitting}>
+                    Reply
+                  </Button>
+                </div>
+
+                {replies.length > 0 && (
+                  <div className="replies-list">
+                    {replies.map((reply) => (
+                      <CommentNode
+                        key={reply._id}
+                        comment={reply}
+                        tweetId={tweetId}
+                        onReplySuccess={onReplySuccess}
+                        userProfile={userProfile}
+                      />
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-
-      {loadingReplies && <div className="ml-12 mt-2 text-sm text-[var(--dim-text)]">Loading replies...</div>}
-
-      <AnimatePresence>
-        {showReplyInput && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="reply-composer-area"
-          >
-            <div className="reply-composer">
-              <CornerDownRight size={16} className="reply-icon" />
-              <textarea 
-                placeholder="Tweet your reply"
-                value={replyContent}
-                onChange={(e) => {
-                  setReplyContent(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
-                }}
-                disabled={isSubmitting}
-                rows={1}
-              />
-              <Button size="sm" onClick={handleReplySubmit} disabled={!replyContent.trim() || isSubmitting} isLoading={isSubmitting}>
-                Reply
-              </Button>
-            </div>
-            
-            {replies.length > 0 && (
-              <div className="replies-list">
-                {replies.map(reply => (
-                  <CommentNode 
-                    key={reply._id} 
-                    comment={reply} 
-                    tweetId={tweetId} 
-                    onReplySuccess={onReplySuccess} 
-                  />
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
-// --- Main Drawer Component ---
-const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
+const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded, userProfile }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
@@ -148,11 +158,16 @@ const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
 
   useEffect(() => {
     const loadComments = async () => {
+      if (!tweet?._id) return;
+
       setLoading(true);
       try {
         const { res, data } = await fetchComments(tweet._id);
-        if (res.ok && data.status === 'success') {
-          setComments(data.data);
+        if (res.ok && data.success) {
+          setComments(Array.isArray(data.data) ? data.data : []);
+        } else {
+          setComments([]);
+          addToast(data.message || 'Failed to load comments', 'error');
         }
       } catch {
         addToast('Failed to load comments', 'error');
@@ -165,45 +180,51 @@ const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
       document.body.style.overflow = 'hidden';
       loadComments();
     }
-    return () => { document.body.style.overflow = 'unset'; };
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen, tweet, addToast]);
 
   const handleSubmit = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !tweet?._id) return;
+
     setIsSubmitting(true);
     try {
-      const { res, data } = await createComment(tweet._id, newComment);
+      const { res, data } = await createComment(tweet._id, newComment.trim());
       if (res.ok && data.success) {
         const addedComment = {
           ...data.data,
-          user: { name: 'You', username: 'user' },
+          user: userProfile || { name: 'You', username: 'you' },
         };
-        setComments([addedComment, ...comments]);
+        setComments((prev) => [addedComment, ...prev]);
         setNewComment('');
-        onCommentAdded();
+        onCommentAdded(tweet._id);
         addToast('Comment added', 'success');
       } else {
         addToast(data.message || 'Failed to add comment', 'error');
       }
     } catch {
-      addToast('Network error', 'error');
+      addToast('Network error while commenting', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const originalAuthor = tweet ? getUserDisplay(tweet.user) : { name: 'User', username: 'user' };
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && tweet && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="drawer-backdrop"
             onClick={onClose}
           />
-          <motion.div 
+          <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -211,18 +232,21 @@ const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
             className="drawer-panel"
           >
             <div className="drawer-header">
-              <h2>Post replies</h2>
-              <button className="drawer-close" onClick={onClose}>
+              <div>
+                <p className="drawer-eyebrow">Conversation</p>
+                <h2>Post replies</h2>
+              </div>
+              <button className="drawer-close" type="button" onClick={onClose} aria-label="Close replies">
                 <X size={24} />
               </button>
             </div>
 
             <div className="drawer-original-tweet">
               <div className="ot-header">
-                <Avatar name={tweet.user?.name || tweet.user?.fullName} size="md" />
+                <Avatar name={originalAuthor.name} size="sm" />
                 <div className="ot-user-info">
-                  <div className="ot-name">{tweet.user?.name || tweet.user?.fullName || 'User'}</div>
-                  <div className="ot-username">@{tweet.user?.username || 'user'}</div>
+                  <div className="ot-name">{originalAuthor.name}</div>
+                  <div className="ot-username">@{originalAuthor.username}</div>
                 </div>
               </div>
               <div className="ot-content">
@@ -234,19 +258,20 @@ const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
               {loading ? (
                 <LoadingSkeleton count={3} />
               ) : comments.length === 0 ? (
-                <EmptyState 
-                  icon={MessageCircle} 
-                  title="No replies yet" 
-                  description="Be the first to share what you think!"
+                <EmptyState
+                  icon={MessageCircle}
+                  title="No replies yet"
+                  description="Be the first to add a sharp thought to this conversation."
                 />
               ) : (
                 <div className="comments-list">
-                  {comments.map(comment => (
-                    <CommentNode 
-                      key={comment._id} 
-                      comment={comment} 
-                      tweetId={tweet._id} 
-                      onReplySuccess={onCommentAdded} 
+                  {comments.map((comment) => (
+                    <CommentNode
+                      key={comment._id}
+                      comment={comment}
+                      tweetId={tweet._id}
+                      onReplySuccess={onCommentAdded}
+                      userProfile={userProfile}
                     />
                   ))}
                 </div>
@@ -254,13 +279,13 @@ const CommentThread = ({ tweet, isOpen, onClose, onCommentAdded }) => {
             </div>
 
             <div className="drawer-footer">
-              <textarea 
+              <textarea
                 placeholder="Post your reply"
                 value={newComment}
-                onChange={(e) => {
-                  setNewComment(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+                onChange={(event) => {
+                  setNewComment(event.target.value);
+                  event.target.style.height = 'auto';
+                  event.target.style.height = `${Math.min(event.target.scrollHeight, 150)}px`;
                 }}
                 disabled={isSubmitting}
                 rows={1}

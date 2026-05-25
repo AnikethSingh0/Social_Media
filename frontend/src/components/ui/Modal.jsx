@@ -28,7 +28,6 @@ const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <div className="modal-backdrop">
-          {/* Backdrop Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -37,7 +36,6 @@ const Modal = ({
             onClick={onClose}
           />
 
-          {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -46,20 +44,20 @@ const Modal = ({
             className={`modal-box modal-${size}`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="modal-header">
+            <div className={`modal-header ${title ? '' : 'modal-header-minimal'}`}>
               {title && <h2 className="modal-title">{title}</h2>}
               {!hideClose && (
                 <button
                   onClick={onClose}
                   className="modal-close-btn"
+                  type="button"
+                  aria-label="Close modal"
                 >
                   <X size={20} />
                 </button>
               )}
             </div>
 
-            {/* Body */}
             <div className="modal-body">
               {children}
             </div>

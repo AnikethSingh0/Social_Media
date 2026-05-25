@@ -1,8 +1,5 @@
 import React from 'react';
 
-/**
- * Decode a JWT payload without a library.
- */
 export function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -11,7 +8,7 @@ export function parseJwt(token) {
       window
         .atob(base64)
         .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .map((char) => `%${(`00${char.charCodeAt(0).toString(16)}`).slice(-2)}`)
         .join('')
     );
     return JSON.parse(jsonPayload);
@@ -20,51 +17,67 @@ export function parseJwt(token) {
   }
 }
 
-/**
- * Human-readable relative time ("2m", "1h", "3d", "May 20").
- */
 export function formatRelativeTime(dateString) {
-  if (!dateString) return '';
-  const now = Date.now();
+  if (!dateString) return 'now';
+
   const then = new Date(dateString).getTime();
-  const diff = Math.max(0, now - then);
-  const secs = Math.floor(diff / 1000);
-  if (secs < 60) return `${secs}s`;
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  const days = Math.floor(hrs / 24);
+  if (Number.isNaN(then)) return 'now';
+
+  const diff = Math.max(0, Date.now() - then);
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 10) return 'now';
+  if (seconds < 60) return `${seconds}s`;
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+
+  const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  const d = new Date(dateString);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()}`;
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(dateString));
 }
 
-/**
- * Render tweet text with coloured #hashtags.
- */
 export function renderContentWithHashtags(text) {
   if (!text) return null;
-  const parts = text.split(/(#\w+)/g);
-  return parts.map((part, i) => {
+
+  return text.split(/(#\w+)/g).map((part, index) => {
     if (part.startsWith('#') && part.length > 1) {
-      return React.createElement('span', { key: i, className: 'hashtag' }, part);
+      return React.createElement('span', { key: index, className: 'hashtag' }, part);
     }
-    return React.createElement('span', { key: i }, part);
+
+    return React.createElement('span', { key: index }, part);
   });
 }
 
-/**
- * Get uppercase initials from a name (e.g. "John Doe" → "JD").
- */
 export function getInitials(name) {
   if (!name) return '?';
+
   return name
     .split(' ')
     .filter(Boolean)
-    .map((w) => w[0])
+    .map((word) => word[0])
     .slice(0, 2)
     .join('')
     .toUpperCase();
+}
+
+export function normalizeMediaUrls(mediaUrl) {
+  if (!mediaUrl) return [];
+
+  const urls = Array.isArray(mediaUrl) ? mediaUrl : [mediaUrl];
+  return urls.filter((url) => typeof url === 'string' && url.trim().length > 0);
+}
+
+export function getUserDisplay(user, fallback = {}) {
+  const source = user && typeof user === 'object' ? user : fallback;
+  const name = source.fullName || source.name || source.username || fallback.fullName || fallback.name || 'User';
+  const username = source.username || fallback.username || 'user';
+
+  return { name, username };
 }

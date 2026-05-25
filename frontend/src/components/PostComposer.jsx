@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, FileType, Smile, Calendar, MapPin, X } from 'lucide-react';
 
 import { createTweet } from '../lib/api';
@@ -10,25 +10,61 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
   const [content, setContent] = useState('');
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState(null);
+  const [mediaKind, setMediaKind] = useState(null);
   const [isPosting, setIsPosting] = useState(false);
   
   const fileInputRef = useRef(null);
   const { addToast } = useToast();
 
   const MAX_CHARS = 250;
+  const MAX_MEDIA_BYTES = 25 * 1024 * 1024;
+  const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'video/mp4',
+  ]);
   const charsLeft = MAX_CHARS - content.length;
   const isOverLimit = charsLeft < 0;
+  const canSubmit = content.trim().length > 0 && !isOverLimit && !isPosting;
+
+  useEffect(() => {
+    return () => {
+      if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
+    };
+  }, [mediaPreviewUrl]);
 
   const handleMediaChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setMediaFile(file);
-      setMediaPreviewUrl(URL.createObjectURL(file));
+    if (!file) return;
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const isAllowedExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4'].includes(extension);
+    const isAllowedMime = ALLOWED_MIME_TYPES.has(file.type);
+
+    if (!isAllowedMime && !isAllowedExtension) {
+      addToast('Upload a JPG, PNG, GIF, WEBP, or MP4 file', 'error');
+      e.target.value = '';
+      return;
     }
+
+    if (file.size > MAX_MEDIA_BYTES) {
+      addToast('Media must be under 25MB', 'error');
+      e.target.value = '';
+      return;
+    }
+
+    if (mediaPreviewUrl) URL.revokeObjectURL(mediaPreviewUrl);
+
+    setMediaFile(file);
+    setMediaKind(file.type.startsWith('video/') || extension === 'mp4' ? 'video' : 'image');
+    setMediaPreviewUrl(URL.createObjectURL(file));
   };
 
   const removeMedia = () => {
     setMediaFile(null);
+    setMediaKind(null);
     if (mediaPreviewUrl) {
       URL.revokeObjectURL(mediaPreviewUrl);
       setMediaPreviewUrl(null);
@@ -37,15 +73,14 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
   };
 
   const handleSubmit = async () => {
-    if ((!content.trim() && !mediaFile) || isOverLimit) return;
+    if (!canSubmit) return;
     
     setIsPosting(true);
     try {
-      const { res, data } = await createTweet(content, mediaFile);
+      const { res, data } = await createTweet(content.trim(), mediaFile);
       if (res.ok && data.status === 'success') {
         const newTweet = {
           ...data.data,
-          // Optimistically add user data since backend might just return ObjectId depending on population
           user: userProfile || { name: 'User', username: 'user' },
         };
         onPostSuccess(newTweet);
@@ -77,7 +112,7 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
       
       <div className="composer-content-col">
         <textarea
-          placeholder="What's on your mind?"
+          placeholder="Share something with Namaste"
           value={content}
           onChange={handleInput}
           disabled={isPosting}
@@ -87,8 +122,12 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
 
         {mediaPreviewUrl && (
           <div className="composer-media-preview">
-            <img src={mediaPreviewUrl} alt="Upload preview" />
-            <button className="composer-media-remove" onClick={removeMedia}>
+            {mediaKind === 'video' ? (
+              <video src={mediaPreviewUrl} controls muted />
+            ) : (
+              <img src={mediaPreviewUrl} alt="Upload preview" />
+            )}
+            <button className="composer-media-remove" onClick={removeMedia} aria-label="Remove selected media">
               <X size={18} />
             </button>
           </div>
@@ -107,13 +146,14 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
               className="tool-btn" 
               onClick={() => fileInputRef.current?.click()}
               disabled={isPosting}
+              aria-label="Attach media"
             >
               <Image size={20} />
             </button>
-            <button className="tool-btn" disabled><FileType size={20} /></button>
-            <button className="tool-btn" disabled><Smile size={20} /></button>
-            <button className="tool-btn" disabled><Calendar size={20} /></button>
-            <button className="tool-btn" disabled><MapPin size={20} /></button>
+            <button className="tool-btn" disabled aria-label="Attach file"><FileType size={20} /></button>
+            <button className="tool-btn" disabled aria-label="Add emoji"><Smile size={20} /></button>
+            <button className="tool-btn" disabled aria-label="Schedule post"><Calendar size={20} /></button>
+            <button className="tool-btn" disabled aria-label="Add location"><MapPin size={20} /></button>
           </div>
 
           <div className="composer-submit-group">
@@ -125,7 +165,7 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
             <div className="composer-divider" />
             <Button
               onClick={handleSubmit}
-              disabled={(!content.trim() && !mediaFile) || isOverLimit || isPosting}
+              disabled={!canSubmit}
               isLoading={isPosting}
               size="sm"
             >

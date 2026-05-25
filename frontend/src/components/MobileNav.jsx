@@ -5,27 +5,27 @@ import { motion } from 'framer-motion';
 const MobileNav = ({ onPostClick }) => {
   return (
     <>
-      {/* Floating Action Button (Mobile Post) */}
       <motion.button 
         className="mobile-fab"
+        type="button"
         onClick={onPostClick}
         whileTap={{ scale: 0.9 }}
+        aria-label="Create post"
       >
         <Feather size={24} />
       </motion.button>
 
-      {/* Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav">
-        <a href="#" className="nav-item active">
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        <a href="#" className="mobile-nav-item active" aria-label="Home">
           <Home size={24} />
         </a>
-        <a href="#" className="nav-item">
+        <a href="#" className="mobile-nav-item" aria-label="Search">
           <Search size={24} />
         </a>
-        <a href="#" className="nav-item">
+        <a href="#" className="mobile-nav-item" aria-label="Notifications">
           <Bell size={24} />
         </a>
-        <a href="#" className="nav-item">
+        <a href="#" className="mobile-nav-item" aria-label="Profile">
           <User size={24} />
         </a>
       </nav>

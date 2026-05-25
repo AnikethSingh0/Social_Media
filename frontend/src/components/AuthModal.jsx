@@ -1,47 +1,50 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
+import { PiHandsPrayingDuotone } from 'react-icons/pi';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
-import { Eye, EyeOff } from 'lucide-react';
 import { login, signup, getGoogleAuthUrl } from '../lib/api';
 
 const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
   const [isLogin, setIsLogin] = useState(initialLoginState);
   const [formData, setFormData] = useState({ email: '', password: '', username: '', fullName: '' });
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('error');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(''); // Clear error on typing
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+    setMessage('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setMessage('');
+    setMessageType('error');
     setLoading(true);
 
     try {
-      const { res, data } = isLogin 
+      const { res, data } = isLogin
         ? await login({ email: formData.email, password: formData.password })
-        : await signup(formData); // Using fullName as model expects
+        : await signup(formData);
 
       if (res.ok && data.success) {
         if (isLogin) {
-          // data.data is an object with { user, token } for login
-          const token = data.data.token || data.data; // fallback for older API format
-          onSuccess(token, 'Welcome back!');
+          const token = data.data?.token || data.data;
+          onSuccess(token, 'Welcome back to Namaste');
         } else {
           setIsLogin(true);
-          setError('Account created successfully! Please sign in.');
-          setFormData({ ...formData, password: '' });
+          setMessageType('success');
+          setMessage('Account created. Sign in to enter Namaste.');
+          setFormData((current) => ({ ...current, password: '' }));
         }
       } else {
-        setError(data.message || 'Authentication failed');
+        setMessage(data.message || 'Authentication failed');
       }
     } catch {
-      setError('Network error. Please try again.');
+      setMessage('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -52,25 +55,24 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
   };
 
   return (
-    <Modal isOpen={true} onClose={onClose} size="md" hideClose={false}>
+    <Modal isOpen onClose={onClose} size="md">
       <div className="auth-modal-content">
-        <div className="brand-logo mx-auto mb-8 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]">
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-          </svg>
+        <div className="auth-brand-mark">
+          <PiHandsPrayingDuotone size={26} />
         </div>
 
-        <h1 className="text-2xl font-bold text-center mb-8 text-[var(--text-color)]">
-          {isLogin ? 'Sign in to Pulse' : 'Join Pulse today'}
-        </h1>
-        
-        <Button 
-          variant="outline" 
-          fullWidth 
+        <div className="auth-heading">
+          <p>Namaste Social</p>
+          <h1>{isLogin ? 'Sign in to Namaste' : 'Create your Namaste account'}</h1>
+        </div>
+
+        <Button
+          variant="secondary"
+          fullWidth
           onClick={handleGoogleLogin}
-          className="mb-6 h-12 relative flex items-center justify-center bg-white text-black border-transparent hover:bg-gray-100"
+          className="google-auth-btn"
         >
-          <svg viewBox="0 0 48 48" className="w-5 h-5 absolute left-4">
+          <svg viewBox="0 0 48 48" className="google-icon" aria-hidden="true">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"></path>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
@@ -79,25 +81,25 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
           </svg>
           Sign {isLogin ? 'in' : 'up'} with Google
         </Button>
-        
-        <div className="flex items-center gap-4 mb-6">
-          <div className="h-px bg-[var(--border-color)] flex-1"></div>
-          <span className="text-[var(--dim-text)] text-sm">or</span>
-          <div className="h-px bg-[var(--border-color)] flex-1"></div>
+
+        <div className="auth-divider">
+          <span></span>
+          <p>or continue with email</p>
+          <span></span>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="auth-form">
           <AnimatePresence mode="popLayout">
             {!isLogin && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex flex-col gap-5"
+                className="signup-fields"
               >
                 <div className="floating-input-group">
                   <input type="text" name="fullName" placeholder=" " value={formData.fullName} onChange={handleChange} required />
-                  <label>Full Name</label>
+                  <label>Full name</label>
                 </div>
                 <div className="floating-input-group">
                   <input type="text" name="username" placeholder=" " value={formData.username} onChange={handleChange} required />
@@ -111,52 +113,56 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
             <input type="email" name="email" placeholder=" " value={formData.email} onChange={handleChange} required />
             <label>Email</label>
           </div>
-          
-          <div className="floating-input-group relative">
-            <input 
-              type={showPassword ? 'text' : 'password'} 
-              name="password" 
-              placeholder=" " 
-              value={formData.password} 
-              onChange={handleChange} 
-              required 
+
+          <div className="floating-input-group password-field">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              placeholder=" "
+              value={formData.password}
+              onChange={handleChange}
+              required
             />
             <label>Password</label>
-            <button 
-              type="button" 
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--dim-text)] hover:text-[var(--text-color)] focus:outline-none"
-              onClick={() => setShowPassword(!showPassword)}
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
           <AnimatePresence>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -10 }}
-                className={`text-sm ${error.includes('successfully') ? 'text-[var(--success-color)]' : 'text-[var(--error-color)]'}`}
+            {message && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className={`auth-message ${messageType}`}
               >
-                {error}
+                {message}
               </motion.div>
             )}
           </AnimatePresence>
 
-          <Button type="submit" fullWidth isLoading={loading} size="lg" className="mt-2">
+          <Button type="submit" fullWidth isLoading={loading} size="lg" className="auth-submit">
             {isLogin ? 'Log in' : 'Sign up'}
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-[var(--dim-text)]">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
+        <div className="auth-switch">
+          {isLogin ? "Don't have an account? " : 'Already have an account? '}
+          <button
             type="button"
-            onClick={() => { setIsLogin(!isLogin); setError(''); }}
-            className="text-[var(--primary-color)] hover:underline font-medium focus:outline-none"
+            onClick={() => {
+              setIsLogin((current) => !current);
+              setMessage('');
+              setMessageType('error');
+            }}
           >
-            {isLogin ? "Sign up" : "Log in"}
+            {isLogin ? 'Sign up' : 'Log in'}
           </button>
         </div>
       </div>
