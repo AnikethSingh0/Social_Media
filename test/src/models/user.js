@@ -23,11 +23,35 @@ const userSchema = new mongoose.Schema({
     },
     fullName: {
         type: String,
-        required: true
     },
     googleId: {
         type: String,
-    }
+    },
+    bio: {
+        type: String,
+        default: ''
+    },
+    avatar: {
+        type: String,
+        default: ''
+    },
+    banner: {
+        type: String,
+        default: ''
+    },
+    location: {
+        type: String,
+        default: ''
+    },
+    followersCount: {
+        type: Number,
+        default: 0
+    },
+    followingCount: {
+        type: Number,
+        default: 0
+    },
+
 },{ timestamps: true });
 
 userSchema.pre('save', async function () {

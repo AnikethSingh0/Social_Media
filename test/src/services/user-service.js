@@ -33,6 +33,14 @@ class UserService {
             throw error;
         }
     }
+    async createProfile(userId, data){
+        try{
+            const user = await this.userRepository.update(userId, data);
+            return user;
+        }catch(error){
+            throw error;
+        }
+    }
 
 }
 module.exports = UserService;
