@@ -111,3 +111,17 @@ export async function updateProfile(formData) {
 export async function fetchProfile(userId) {
   return apiFetch(`/profile/fetch-profile/${userId}`);
 }
+
+export async function toggleFollow(followingId) {
+  return apiFetch(`/follow/toggle-follow/${followingId}`, {
+    method: 'POST'
+  });
+}
+
+export async function fetchFollowers(userId) {
+  return apiFetch(`/follow/get-followers/${userId}`);
+}
+
+export async function fetchFollowing(userId) {
+  return apiFetch(`/follow/get-following/${userId}`);
+}

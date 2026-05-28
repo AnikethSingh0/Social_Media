@@ -6,7 +6,9 @@ const v1AuthRoutes = require('./v1/auth-routes.js');
 const v1CommentRoutes = require('./v1/comment-routes.js');
 const v1LikeRoutes = require('./v1/like-routes.js');
 const v1ProfileRoutes = require('./v1/profile-routes.js');
+const v1FollowRoutes = require('./v1/follow-routes.js');
 
+router.use('/v1/follow', v1FollowRoutes);
 router.use('/v1/profile', v1ProfileRoutes);
 router.use('/v1/likes', v1LikeRoutes);
 router.use('/v1/comments', v1CommentRoutes);

@@ -33,7 +33,7 @@ const AppContent = () => {
         import('./lib/api').then(({ fetchProfile }) => {
           fetchProfile(jwtData.id).then(({ res, data }) => {
             if (res.ok && data.status === 'success' && data.data) {
-              setUserProfile({ ...jwtData, ...data.data });
+              setUserProfile({ ...jwtData, ...data.data.user });
             } else {
               setUserProfile(jwtData);
             }

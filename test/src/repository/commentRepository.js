@@ -57,6 +57,15 @@ class CommentRepository extends baseRepository {
             throw error;
         }
     }
+    async getCommentWithUserId(userId) {
+        try {
+            const comment = await this.model.find({ user : userId }).sort({ createdAt: -1 });
+            return comment;
+        } catch (error) {
+            console.log("Error in CommentRepository while fetching comments by userId:", error);
+            throw error;
+        }
+    }
 
 }
 

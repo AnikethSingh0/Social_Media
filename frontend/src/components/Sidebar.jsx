@@ -1,4 +1,4 @@
-import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal, Sparkles } from 'lucide-react';
+import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal, Sparkles, LogOut, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -72,29 +72,42 @@ const Sidebar = ({ userProfile, onLogout, onPostClick }) => {
             <AnimatePresence>
               {showDropdown && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-full left-0 mb-2 w-full bg-[#111] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 p-2"
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-full left-0 mb-3 w-full bg-black border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.05)] z-50 py-2"
                 >
+                  <div className="px-4 py-3 border-b border-white/10 mb-1">
+                    <div className="font-bold text-[15px] truncate">{displayName}</div>
+                    <div className="text-gray-500 text-[14px] truncate">@{username}</div>
+                  </div>
+                  
                   <Link 
                     to="/profile" 
-                    className="block px-4 py-3 text-sm hover:bg-white/5 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold hover:bg-white/5 transition-colors"
                     onClick={() => setShowDropdown(false)}
                   >
+                    <User size={20} />
                     View Profile
                   </Link>
+                  
                   <Link 
                     to="/setup" 
-                    className="block px-4 py-3 text-sm hover:bg-white/5 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold hover:bg-white/5 transition-colors"
                     onClick={() => setShowDropdown(false)}
                   >
-                    Edit Profile
+                    <Settings size={20} />
+                    Settings & Profile
                   </Link>
+                  
+                  <div className="h-[1px] bg-white/10 my-1 mx-2" />
+                  
                   <button 
                     onClick={onLogout}
-                    className="block w-full text-left px-4 py-3 text-sm hover:bg-white/5 rounded-lg transition-colors text-red-500"
+                    className="flex items-center gap-3 w-full text-left px-4 py-3.5 text-[15px] font-bold hover:bg-red-500/10 hover:text-red-500 text-white transition-colors"
                   >
+                    <LogOut size={20} />
                     Log out @{username}
                   </button>
                 </motion.div>

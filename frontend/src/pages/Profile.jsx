@@ -5,7 +5,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
-import { fetchProfile } from '../lib/api';
+import TweetCard from '../components/TweetCard';
+import CommentThread from '../components/CommentThread';
+import FollowListModal from '../components/FollowListModal';
+import { fetchProfile, toggleFollow, fetchFollowing } from '../lib/api';
+import { formatRelativeTime, renderContentWithHashtags } from '../lib/utils';
 
 const tabs = ['Posts', 'Replies', 'Media', 'Likes'];
 
@@ -24,6 +28,38 @@ const Profile = ({ userProfile: jwtProfile }) => {
   const [activeTab, setActiveTab] = useState('Posts');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeCommentTweet, setActiveCommentTweet] = useState(null);
+  const [isFollowListOpen, setIsFollowListOpen] = useState(false);
+  const [followListType, setFollowListType] = useState('followers');
+  const [isFollowingProfile, setIsFollowingProfile] = useState(false);
+  const [localFollowersCount, setLocalFollowersCount] = useState(0);
+  const [localFollowingCount, setLocalFollowingCount] = useState(0);
+
+  const handleOpenComments = (tweet) => {
+    setActiveCommentTweet(tweet);
+  };
+
+  const handleCloseComments = () => {
+    setActiveCommentTweet(null);
+  };
+
+  const handleCommentAdded = (tweetId = activeCommentTweet?._id) => {
+    if (!tweetId) return;
+
+    setActiveCommentTweet((prev) => (
+      prev && prev._id === tweetId
+        ? { ...prev, commentCount: (prev.commentCount || 0) + 1 }
+        : prev
+    ));
+    
+    setProfileData(prev => {
+      if (!prev || !prev.tweets) return prev;
+      return {
+        ...prev,
+        tweets: prev.tweets.map(t => t._id === tweetId ? { ...t, commentCount: (t.commentCount || 0) + 1 } : t)
+      };
+    });
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -35,10 +71,29 @@ const Profile = ({ userProfile: jwtProfile }) => {
         return;
       }
       
+      if (isMounted) {
+        setLoading(true);
+        // Clear previous profile data when navigating to a new user
+        setProfileData(null);
+      }
+      
       try {
         const { res, data } = await fetchProfile(targetId);
         if (isMounted && res.ok && data.status === 'success') {
           setProfileData(data.data);
+          
+          setLocalFollowersCount(data.data?.user?.followersCount || 0);
+          setLocalFollowingCount(data.data?.user?.followingCount || 0);
+
+
+
+          if (jwtProfile?.id && targetId !== jwtProfile.id) {
+            const { res: followingRes, data: followingData } = await fetchFollowing(jwtProfile.id);
+            if (followingRes.ok && followingData.status === 'success') {
+              const isFollowing = followingData.data.some(f => f.following?._id === targetId);
+              setIsFollowingProfile(isFollowing);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching profile", error);
@@ -51,7 +106,26 @@ const Profile = ({ userProfile: jwtProfile }) => {
 
     loadProfile();
     return () => { isMounted = false; };
-  }, [jwtProfile]);
+  }, [userId, jwtProfile]);
+
+  const handleToggleProfileFollow = async () => {
+    const targetId = profileData?.user?._id;
+    if (!targetId) return;
+    try {
+      const { res } = await toggleFollow(targetId);
+      if (res.ok) {
+        setIsFollowingProfile(!isFollowingProfile);
+        setLocalFollowersCount(prev => isFollowingProfile ? Math.max(0, prev - 1) : prev + 1);
+      }
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+    }
+  };
+
+  const openFollowList = (type) => {
+    setFollowListType(type);
+    setIsFollowListOpen(true);
+  };
 
   if (loading) {
     return (
@@ -65,7 +139,9 @@ const Profile = ({ userProfile: jwtProfile }) => {
 
   // Fallback to jwtProfile if fetch fails, but only if it's our own profile
   const isOwnProfile = !userId || userId === jwtProfile?.id;
-  const displayProfile = profileData || (isOwnProfile ? (jwtProfile || {}) : {});
+  const displayProfile = profileData?.user || (isOwnProfile ? (jwtProfile || {}) : {});
+  const userTweets = profileData?.tweets || [];
+  const userComments = profileData?.comments || [];
   
   const username = displayProfile.username || 'user';
   const fullName = displayProfile.fullName || displayProfile.name || username;
@@ -75,11 +151,6 @@ const Profile = ({ userProfile: jwtProfile }) => {
   
   const avatarUrl = getImageUrl(displayProfile.avatar);
   const bannerUrl = getImageUrl(displayProfile.banner);
-
-  const stats = {
-    following: displayProfile.followingCount || 0,
-    followers: displayProfile.followersCount || 0
-  };
 
   return (
     <div className="feed overflow-y-auto h-screen custom-scrollbar pb-20 relative">
@@ -126,9 +197,14 @@ const Profile = ({ userProfile: jwtProfile }) => {
                 </Button>
               ) : (
                 <Button 
-                  className="rounded-full font-bold px-6 py-2 bg-white text-black hover:bg-gray-200"
+                  className={`rounded-full font-bold px-6 py-2 ${
+                    isFollowingProfile 
+                      ? 'border border-gray-500 bg-transparent text-white hover:border-red-500 hover:text-red-500 hover:bg-red-500/10' 
+                      : 'bg-white text-black hover:bg-gray-200'
+                  }`}
+                  onClick={handleToggleProfileFollow}
                 >
-                  Follow
+                  {isFollowingProfile ? 'Unfollow' : 'Follow'}
                 </Button>
               )}
             </div>
@@ -159,12 +235,12 @@ const Profile = ({ userProfile: jwtProfile }) => {
           </div>
           
           <div className="flex gap-4 mt-4 text-sm">
-            <a href="#" className="hover:underline">
-              <span className="font-bold text-white">{stats.following}</span> <span className="text-gray-500">Following</span>
-            </a>
-            <a href="#" className="hover:underline">
-              <span className="font-bold text-white">{stats.followers}</span> <span className="text-gray-500">Followers</span>
-            </a>
+            <button onClick={() => openFollowList('following')} className="hover:underline text-left">
+              <span className="font-bold text-white">{localFollowingCount}</span> <span className="text-gray-500">Following</span>
+            </button>
+            <button onClick={() => openFollowList('followers')} className="hover:underline text-left">
+              <span className="font-bold text-white">{localFollowersCount}</span> <span className="text-gray-500">Followers</span>
+            </button>
           </div>
         </div>
 
@@ -186,12 +262,62 @@ const Profile = ({ userProfile: jwtProfile }) => {
           ))}
         </div>
         
-        <div className="p-8 text-center text-gray-500">
-          <div className="mb-4 text-4xl">🚀</div>
-          <h3 className="text-xl font-bold text-white mb-2">No {activeTab.toLowerCase()} yet</h3>
-          <p>When you have {activeTab.toLowerCase()}, they will show up here.</p>
-        </div>
+        {activeTab === 'Posts' && userTweets.length > 0 ? (
+          <div className="divide-y divide-white/10">
+            {userTweets.map(tweet => (
+              <TweetCard 
+                key={tweet._id} 
+                tweet={tweet} 
+                currentUserProfile={jwtProfile}
+                onOpenComments={() => handleOpenComments(tweet)}
+              />
+            ))}
+          </div>
+        ) : activeTab === 'Replies' && userComments.length > 0 ? (
+          <div className="divide-y divide-white/10">
+            {userComments.map(comment => (
+              <div key={comment._id} className="p-4 hover:bg-white/5 transition-colors">
+                <div className="flex gap-3">
+                  <Avatar name={displayProfile.fullName || displayProfile.name || displayProfile.username} src={avatarUrl} size="md" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white hover:underline cursor-pointer">{displayProfile.fullName || displayProfile.name || displayProfile.username}</span>
+                      <span className="text-gray-500 text-sm">@{displayProfile.username}</span>
+                      <span className="text-gray-500 text-sm">&middot;</span>
+                      <span className="text-gray-500 text-sm hover:underline cursor-pointer">{formatRelativeTime(comment.createdAt)}</span>
+                    </div>
+                    <div className="mt-1 text-white text-[15px]">
+                      {renderContentWithHashtags(comment.content)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            <div className="mb-4 text-4xl">🚀</div>
+            <h3 className="text-xl font-bold text-white mb-2">No {activeTab.toLowerCase()} yet</h3>
+            <p>When you have {activeTab.toLowerCase()}, they will show up here.</p>
+          </div>
+        )}
       </div>
+
+      <CommentThread 
+        tweet={activeCommentTweet}
+        isOpen={!!activeCommentTweet}
+        onClose={handleCloseComments}
+        onCommentAdded={handleCommentAdded}
+        userProfile={jwtProfile}
+      />
+
+      <FollowListModal 
+        isOpen={isFollowListOpen}
+        onClose={() => setIsFollowListOpen(false)}
+        type={followListType}
+        userId={userId || jwtProfile?.id}
+        currentUserProfile={jwtProfile}
+      />
     </div>
   );
 };

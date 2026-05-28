@@ -97,5 +97,17 @@ class TweetRepository {
             throw error;
         }
     }
+    async getTweetsByUserId(userId, offset, limit) {
+        try {
+            const tweets = await Tweet.find({user : userId})
+            .populate('user' , 'name fullName username avatar')
+            .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit);
+            return tweets;
+        } catch (error) {
+            throw new Error('Error fetching tweets by user ID: ' + error.message);
+        }
+    }
 }
 module.exports = TweetRepository;

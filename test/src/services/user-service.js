@@ -1,6 +1,12 @@
 const UserRepository = require('../repository/userRepository.js');
+const TweetRepository = require('../repository/tweetRepository.js');
+const CommentRepository = require('../repository/commentRepository.js');
+const FollowRepository = require('../repository/followRepository.js');
 class UserService {
     userRepository = new UserRepository();
+    tweetRepository = new TweetRepository();
+    commentRepository = new CommentRepository();
+    followRepository = new FollowRepository();
     async signup(data){
         try{
             const user = await this.userRepository.create(data);
@@ -44,7 +50,14 @@ class UserService {
     async getUserProfile(userId){
         try{
             const user = await this.userRepository.model.findById(userId);
-            return user;
+            
+            const [tweets, comments, followersCount, followingCount] = await Promise.all([
+                this.tweetRepository.getTweetsByUserId(userId, 0, 10),
+                this.commentRepository.getCommentWithUserId(userId),
+
+            ]);
+
+            return {user, tweets, comments };
         }catch(error){
             throw error;
         }
