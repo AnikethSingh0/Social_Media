@@ -97,3 +97,17 @@ export async function toggleLike(modelType, modelId) {
     method: 'POST'
   });
 }
+
+export async function updateProfile(formData) {
+  const res = await fetch(`${API_BASE}/profile/update-profile`, {
+    method: 'PATCH',
+    headers: { ...authHeaders() },
+    body: formData,
+  });
+  const data = await readJson(res);
+  return { res, data };
+}
+
+export async function fetchProfile(userId) {
+  return apiFetch(`/profile/fetch-profile/${userId}`);
+}

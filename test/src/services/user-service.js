@@ -41,6 +41,14 @@ class UserService {
             throw error;
         }
     }
+    async getUserProfile(userId){
+        try{
+            const user = await this.userRepository.model.findById(userId);
+            return user;
+        }catch(error){
+            throw error;
+        }
+    }
 
 }
 module.exports = UserService;

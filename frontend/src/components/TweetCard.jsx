@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessageCircle, Repeat2, Heart, BarChart2, BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import Avatar from './ui/Avatar';
 import MediaPreview from './ui/MediaPreview';
 import {
@@ -10,16 +11,33 @@ import {
   renderContentWithHashtags,
   isLikedLocally,
   toggleLikeLocally,
+  getImageUrl,
 } from '../lib/utils';
 import { toggleLike } from '../lib/api';
 
-const TweetCard = ({ tweet, onOpenComments }) => {
+const TweetCard = ({ tweet, currentUserProfile, onOpenComments }) => {
   const [isLiked, setIsLiked] = useState(() => isLikedLocally(tweet._id));
   const [likeCount, setLikeCount] = useState(tweet.likeCount || 0);
 
-  const { name, username } = getUserDisplay(tweet.user, { username: tweet.localUsername });
+  // Support multiple possible backend formats for name/username
+  const tweetUser = tweet.user || {};
+  const { name, username } = getUserDisplay(tweetUser, { 
+    username: tweet.username || tweet.localUsername,
+    name: tweet.name || tweet.fullName
+  });
+
   const mediaUrls = normalizeMediaUrls(tweet.mediaUrl);
-  const isVerified = ['admin', 'namaste', 'official'].includes(username.toLowerCase());
+  const isVerified = ['admin', 'orbit', 'official'].includes(username.toLowerCase());
+  
+  // Try to find the avatar in multiple possible places
+  const isCurrentUser = currentUserProfile && username === currentUserProfile.username;
+  const avatarSrc = (isCurrentUser && currentUserProfile.avatar)
+    ? getImageUrl(currentUserProfile.avatar) 
+    : tweetUser.avatar 
+      ? getImageUrl(tweetUser.avatar) 
+      : tweet.avatar 
+        ? getImageUrl(tweet.avatar) 
+        : null;
 
   const handleLike = async (event) => {
     event.stopPropagation();
@@ -60,16 +78,24 @@ const TweetCard = ({ tweet, onOpenComments }) => {
       tabIndex={0}
       aria-label={`Open replies for ${name}'s post`}
     >
-      <div className="tweet-avatar-col">
-        <Avatar name={name} size="md" />
+      <div className="tweet-avatar-col" onClick={(event) => event.stopPropagation()}>
+        <Link to={tweetUser._id ? `/profile/${tweetUser._id}` : '/profile'}>
+          <Avatar name={name} src={avatarSrc} size="md" />
+        </Link>
       </div>
 
       <div className="tweet-content-col">
         <div className="tweet-header">
-          <div className="tweet-author-info">
-            <span className="tweet-name">{name}</span>
+          <Link 
+            to={tweetUser._id ? `/profile/${tweetUser._id}` : '/profile'} 
+            onClick={(event) => event.stopPropagation()} 
+            className="tweet-author-info flex items-center gap-1 group"
+          >
+            <span className="tweet-name group-hover:underline">{name}</span>
             {isVerified && <BadgeCheck size={16} className="verified-badge" />}
             <span className="tweet-username">@{username}</span>
+          </Link>
+          <div className="tweet-author-info ml-1">
             <span className="tweet-dot">&middot;</span>
             <span className="tweet-time">{formatRelativeTime(tweet.createdAt)}</span>
           </div>

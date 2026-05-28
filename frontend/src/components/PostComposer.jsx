@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image, FileType, Smile, Calendar, MapPin, X } from 'lucide-react';
 
+import { getImageUrl } from '../lib/utils';
 import { createTweet } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 import Avatar from './ui/Avatar';
@@ -107,12 +108,12 @@ const PostComposer = ({ userProfile, onPostSuccess }) => {
   return (
     <div className="post-composer">
       <div className="composer-avatar-col">
-        <Avatar name={userProfile?.fullName || userProfile?.username || 'User'} />
+        <Avatar name={userProfile?.fullName || userProfile?.username || 'User'} src={getImageUrl(userProfile?.avatar)} />
       </div>
       
       <div className="composer-content-col">
         <textarea
-          placeholder="Share something with Namaste"
+          placeholder="Share something with Orbit"
           value={content}
           onChange={handleInput}
           disabled={isPosting}

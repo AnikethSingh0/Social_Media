@@ -100,10 +100,10 @@ const Feed = ({
 
   return (
     <main className="feed">
-      <div className="feed-header">
+      <div className="sticky top-0 z-10 bg-black/70 backdrop-blur-xl border-b border-white/10 px-4 py-3">
         <div>
-          <p className="feed-kicker">Namaste</p>
-          <h2 className="feed-title">Home</h2>
+          <p className="text-[#14b8a6] text-[10px] font-bold uppercase tracking-widest mb-0.5">Orbit</p>
+          <h2 className="text-xl font-bold text-white">Home</h2>
         </div>
       </div>
 
@@ -130,6 +130,7 @@ const Feed = ({
                     <div ref={lastTweetElementRef} key={tweet._id || `tweet-${index}`} style={{ width: '100%' }}>
                       <TweetCard 
                         tweet={displayTweet} 
+                        currentUserProfile={userProfile}
                         onOpenComments={() => onOpenComments && onOpenComments(displayTweet)} 
                       />
                     </div>
@@ -139,6 +140,7 @@ const Feed = ({
                     <TweetCard 
                       key={tweet._id || `tweet-${index}`} 
                       tweet={displayTweet} 
+                      currentUserProfile={userProfile}
                       onOpenComments={() => onOpenComments && onOpenComments(displayTweet)} 
                     />
                   );
@@ -165,7 +167,7 @@ const Feed = ({
         {!loading && tweets.length === 0 && (
           <EmptyState 
             icon={MessageSquare}
-            title="Welcome to Namaste"
+            title="Welcome to Orbit"
             description="Your timeline is empty. Follow people or post something to get started!"
           />
         )}

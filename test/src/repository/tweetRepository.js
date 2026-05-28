@@ -26,7 +26,7 @@ class TweetRepository {
     async getAllTweets(offset,limit) {
         try {
             const tweets = await Tweet.find()
-            .populate('user' , 'name username')
+            .populate('user' , 'name fullName username avatar')
             .sort({ createdAt: -1 })
             .skip(offset)
             .limit(limit);

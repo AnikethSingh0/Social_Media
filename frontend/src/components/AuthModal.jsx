@@ -33,11 +33,11 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
       if (res.ok && data.success) {
         if (isLogin) {
           const token = data.data?.token || data.data;
-          onSuccess(token, 'Welcome back to Namaste');
+          onSuccess(token, 'Welcome back to Orbit');
         } else {
           setIsLogin(true);
           setMessageType('success');
-          setMessage('Account created. Sign in to enter Namaste.');
+          setMessage('Account created. Sign in to enter Orbit.');
           setFormData((current) => ({ ...current, password: '' }));
         }
       } else {
@@ -62,8 +62,8 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
         </div>
 
         <div className="auth-heading">
-          <p>Namaste Social</p>
-          <h1>{isLogin ? 'Sign in to Namaste' : 'Create your Namaste account'}</h1>
+          <p>Orbit Social</p>
+          <h1>{isLogin ? 'Sign in to Orbit' : 'Create your Orbit account'}</h1>
         </div>
 
         <Button

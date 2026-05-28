@@ -1,8 +1,13 @@
-
 import { Home, Search, Feather, Bell, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
 
-const MobileNav = ({ onPostClick }) => {
+import { getImageUrl } from '../lib/utils';
+import Avatar from './ui/Avatar';
+
+const MobileNav = ({ onPostClick, userProfile }) => {
+  const location = useLocation();
+
   return (
     <>
       <motion.button 
@@ -16,18 +21,22 @@ const MobileNav = ({ onPostClick }) => {
       </motion.button>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-        <a href="#" className="mobile-nav-item active" aria-label="Home">
+        <Link to="/" className={`mobile-nav-item ${location.pathname === '/' ? 'active' : ''}`} aria-label="Home">
           <Home size={24} />
-        </a>
-        <a href="#" className="mobile-nav-item" aria-label="Search">
+        </Link>
+        <Link to="/explore" className={`mobile-nav-item ${location.pathname === '/explore' ? 'active' : ''}`} aria-label="Search">
           <Search size={24} />
-        </a>
-        <a href="#" className="mobile-nav-item" aria-label="Notifications">
+        </Link>
+        <Link to="/notifications" className={`mobile-nav-item ${location.pathname === '/notifications' ? 'active' : ''}`} aria-label="Notifications">
           <Bell size={24} />
-        </a>
-        <a href="#" className="mobile-nav-item" aria-label="Profile">
-          <User size={24} />
-        </a>
+        </Link>
+        <Link to="/profile" className={`mobile-nav-item ${location.pathname === '/profile' ? 'active' : ''}`} aria-label="Profile">
+          {userProfile?.avatar ? (
+            <Avatar size="sm" src={getImageUrl(userProfile.avatar)} name={userProfile.name || userProfile.username} />
+          ) : (
+            <User size={24} />
+          )}
+        </Link>
       </nav>
     </>
   );

@@ -32,7 +32,24 @@ const createProfile = async (req, res) => {
         });
     }
 };
+async function getProfile(req, res) {
+    try {
+        const profile = await userService.getUserProfile(req.params.id);
+        return res.status(200).json({
+            data: profile,
+            status: 'success',
+            message: 'Profile fetched successfully',
+            error: {},
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Error fetching profile',
+            error: error.message,
+        });
+    }
+}
 
 module.exports = {
-    createProfile
+    createProfile,
+    getProfile
 };

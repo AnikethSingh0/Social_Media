@@ -22,7 +22,7 @@ const RightSidebar = () => {
         <div className="search-container">
           <div className="search-box">
             <Search size={18} className="search-icon" />
-            <input type="text" placeholder="Search Namaste" aria-label="Search Namaste" />
+            <input type="text" placeholder="Search Orbit" aria-label="Search Orbit" />
           </div>
         </div>
 
@@ -67,7 +67,7 @@ const RightSidebar = () => {
             <a href="#">Accessibility</a>
             <a href="#">More</a>
           </nav>
-          <p>&copy; 2026 Namaste.</p>
+          <p>&copy; 2026 Orbit.</p>
         </footer>
       </div>
     </aside>

@@ -56,16 +56,21 @@ export function renderContentWithHashtags(text) {
 }
 
 export function getInitials(name) {
-  if (!name) return '?';
-
+  if (!name) return 'U';
   return name
     .split(' ')
-    .filter(Boolean)
-    .map((word) => word[0])
-    .slice(0, 2)
+    .map((n) => n[0])
     .join('')
-    .toUpperCase();
+    .toUpperCase()
+    .substring(0, 2);
 }
+
+export const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:3000';
+  return `${baseUrl}/${path.replace(/\\/g, '/')}`;
+};
 
 export function normalizeMediaUrls(mediaUrl) {
   if (!mediaUrl) return [];
@@ -84,7 +89,7 @@ export function getUserDisplay(user, fallback = {}) {
 
 export function getLikedItems() {
   try {
-    return JSON.parse(localStorage.getItem('namaste_likes') || '{}');
+    return JSON.parse(localStorage.getItem('orbit_likes') || '{}');
   } catch {
     return {};
   }
@@ -103,5 +108,5 @@ export function toggleLikeLocally(id, isLiked) {
   } else {
     delete likes[id];
   }
-  localStorage.setItem('namaste_likes', JSON.stringify(likes));
+  localStorage.setItem('orbit_likes', JSON.stringify(likes));
 }
