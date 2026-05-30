@@ -9,6 +9,7 @@ import Landing from './pages/Landing';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Setup from './pages/Setup';
+import Messages from './pages/Messages';
 
 const AppContent = () => {
   const [token, setTokenState] = useState(getToken());
@@ -74,6 +75,8 @@ const AppContent = () => {
         <Route path="setup" element={<Setup userProfile={userProfile} />} />
         <Route path="profile" element={<Profile userProfile={userProfile} />} />
         <Route path="profile/:userId" element={<Profile userProfile={userProfile} />} />
+        <Route path="messages" element={<Messages userProfile={userProfile} />} />
+        <Route path="messages/:userId" element={<Messages userProfile={userProfile} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

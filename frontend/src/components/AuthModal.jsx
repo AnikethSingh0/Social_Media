@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
-import { PiHandsPrayingDuotone } from 'react-icons/pi';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
+import OrbitLogo from './ui/OrbitLogo';
 import { login, signup, getGoogleAuthUrl } from '../lib/api';
 
 const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
@@ -58,7 +58,7 @@ const AuthModal = ({ onClose, onSuccess, initialLoginState = true }) => {
     <Modal isOpen onClose={onClose} size="md">
       <div className="auth-modal-content">
         <div className="auth-brand-mark">
-          <PiHandsPrayingDuotone size={26} />
+          <OrbitLogo size={36} />
         </div>
 
         <div className="auth-heading">

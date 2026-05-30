@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Link as LinkIcon, Calendar, ArrowLeft } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Calendar, ArrowLeft, Mail } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
@@ -196,16 +196,26 @@ const Profile = ({ userProfile: jwtProfile }) => {
                   Edit profile
                 </Button>
               ) : (
-                <Button 
-                  className={`rounded-full font-bold px-6 py-2 ${
-                    isFollowingProfile 
-                      ? 'border border-gray-500 bg-transparent text-white hover:border-red-500 hover:text-red-500 hover:bg-red-500/10' 
-                      : 'bg-white text-black hover:bg-gray-200'
-                  }`}
-                  onClick={handleToggleProfileFollow}
-                >
-                  {isFollowingProfile ? 'Unfollow' : 'Follow'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="rounded-full font-bold w-10 h-10 p-0 flex items-center justify-center border-gray-500 text-white hover:bg-white/10"
+                    onClick={() => navigate(`/messages/${displayProfile._id}`)}
+                    aria-label="Message"
+                  >
+                    <Mail size={20} />
+                  </Button>
+                  <Button 
+                    className={`rounded-full font-bold px-6 py-2 ${
+                      isFollowingProfile 
+                        ? 'border border-gray-500 bg-transparent text-white hover:border-red-500 hover:text-red-500 hover:bg-red-500/10' 
+                        : 'bg-white text-black hover:bg-gray-200'
+                    }`}
+                    onClick={handleToggleProfileFollow}
+                  >
+                    {isFollowingProfile ? 'Unfollow' : 'Follow'}
+                  </Button>
+                </div>
               )}
             </div>
           </div>

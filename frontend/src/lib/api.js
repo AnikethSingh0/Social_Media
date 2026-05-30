@@ -125,3 +125,19 @@ export async function fetchFollowers(userId) {
 export async function fetchFollowing(userId) {
   return apiFetch(`/follow/get-following/${userId}`);
 }
+
+export async function fetchChatHistory(roomId) {
+  return apiFetch(`/chat/get-history/${roomId}`);
+}
+
+export async function uploadChatMedia(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE}/chat/upload`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+    body: formData,
+  });
+  const data = await readJson(res);
+  return { res, data };
+}

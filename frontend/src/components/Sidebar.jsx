@@ -1,7 +1,8 @@
-import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal, Sparkles, LogOut, Settings } from 'lucide-react';
+import { Home, User, Bell, Mail, Hash, Feather, MoreHorizontal, LogOut, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import OrbitLogo from './ui/OrbitLogo';
 import Avatar from './ui/Avatar';
 import Button from './ui/Button';
 import { getImageUrl } from '../lib/utils';
@@ -31,7 +32,7 @@ const Sidebar = ({ userProfile, onLogout, onPostClick }) => {
             aria-label="Orbit home"
           >
             <div className="brand-logo">
-              <Sparkles size={24} />
+              <OrbitLogo size={32} />
             </div>
             <span className="brand-wordmark">Orbit</span>
           </motion.div>

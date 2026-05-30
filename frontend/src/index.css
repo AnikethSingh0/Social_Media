@@ -10,10 +10,10 @@
   --text-strong: #ffffff;
   --dim-text: #8b8d96;
   --muted-text: #61626a;
-  --primary-color: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --accent-color: #14b8a6;
-  --sky-color: #0ea5e9;
+  --primary-color: #1d9bf0;
+  --primary-hover: #1a8cd8;
+  --accent-color: #00ba7c;
+  --sky-color: #1d9bf0;
   --rose-color: #f43f5e;
   --warning-color: #f59e0b;
   --success-color: #10b981;
@@ -320,9 +320,8 @@ textarea {
 .brand-logo {
   display: grid;
   place-items: center;
-  color: #111111;
-  background: linear-gradient(135deg, #fff7d6, #c7a453);
-  box-shadow: 0 16px 42px rgba(247, 220, 141, 0.16);
+  color: #1d9bf0;
+  background: transparent;
 }
 
 .auth-brand-mark {
@@ -694,6 +693,11 @@ textarea {
   justify-content: center;
   min-height: 100vh;
   margin: 0 auto;
+}
+
+.app-container-messages {
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  max-width: 1280px;
 }
 
 .sidebar {
@@ -2194,4 +2198,20 @@ input[type="range"] {
   .reply-composer-area {
     margin-left: 0;
   }
+}
+
+/* Shelf.nu Inspired Landing Utilities */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+.animate-marquee {
+  animation: marquee var(--marquee-duration, 25s) linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
